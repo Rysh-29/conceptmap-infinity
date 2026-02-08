@@ -39,6 +39,7 @@ export type GraphStore = {
     past: GraphSnapshot[];
     future: GraphSnapshot[];
   };
+  revision: number;
   dragging: boolean;
   dragSnapshot?: GraphSnapshot;
   isReady: boolean;
@@ -74,6 +75,7 @@ export type GraphStore = {
 };
 
 const HISTORY_LIMIT = 120;
+let lastSavedRevision = 0;
 
 const createNode = (position: { x: number; y: number }, parentId?: string): ConceptNode => ({
   id: nanoid(),
@@ -125,6 +127,7 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
     past: [],
     future: [],
   },
+  revision: 0,
   dragging: false,
   dragSnapshot: undefined,
   isReady: false,
@@ -133,6 +136,7 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
 
   loadDocument: (doc) => {
     const { nodes, edges, metadata } = hydrateFromExportMap(doc);
+    lastSavedRevision = 0;
     set({
       nodes,
       edges,
@@ -140,6 +144,7 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
       history: { past: [], future: [] },
       selectedNodeId: undefined,
       selectedEdgeId: undefined,
+      revision: 0,
       dragging: false,
       dragSnapshot: undefined,
       isReady: true,
@@ -152,6 +157,7 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
     const dateStamp = now.slice(0, 10);
     const displayName = name?.trim() || `Mapa ${dateStamp}`;
     const rootNode = { ...createNode({ x: 0, y: 0 }), selected: true };
+    lastSavedRevision = 0;
     set((state) => ({
       nodes: [rootNode],
       edges: [],
@@ -162,6 +168,7 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
         updatedAt: now,
       },
       history: { past: [], future: [] },
+      revision: 1,
       documents: [{ id, name: displayName, createdAt: now, updatedAt: now }, ...state.documents],
       selectedNodeId: rootNode.id,
       selectedEdgeId: undefined,
@@ -175,6 +182,7 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
     const trimmed = name.trim();
     if (!trimmed) return;
     set((state) => ({
+      revision: trimmed === state.metadata.name ? state.revision : state.revision + 1,
       metadata: {
         ...state.metadata,
         name: trimmed,
@@ -190,6 +198,7 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
       return {
         nodes: nextNodes,
         history: shouldRecord ? withHistory(state, cloneGraph(state.nodes, state.edges)) : state.history,
+        revision: shouldRecord ? state.revision + 1 : state.revision,
       };
     });
   },
@@ -201,6 +210,7 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
       return {
         edges: nextEdges,
         history: shouldRecord ? withHistory(state, cloneGraph(state.nodes, state.edges)) : state.history,
+        revision: shouldRecord ? state.revision + 1 : state.revision,
       };
     });
   },
@@ -232,6 +242,7 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
         nodes: nextNodes,
         edges: nextEdges,
         history: withHistory(state, snapshot),
+        revision: state.revision + 1,
       };
     });
   },
@@ -251,6 +262,7 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
       return {
         nodes: [...nextNodes, newNode],
         history: withHistory(state, snapshot),
+        revision: state.revision + 1,
         selectedNodeId: newNode.id,
         selectedEdgeId: undefined,
       };
@@ -279,6 +291,7 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
         nodes: [...nextNodes, newNode],
         edges: [...state.edges, newEdge],
         history: withHistory(state, snapshot),
+        revision: state.revision + 1,
         selectedNodeId: newNode.id,
         selectedEdgeId: undefined,
       };
@@ -302,6 +315,7 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
         return {
           nodes: [...nextNodes, newNode],
           history: withHistory(state, snapshot),
+          revision: state.revision + 1,
           selectedNodeId: newNode.id,
           selectedEdgeId: undefined,
         };
@@ -324,6 +338,7 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
         nodes: [...nextNodes, newNode],
         edges: [...state.edges, newEdge],
         history: withHistory(state, snapshot),
+        revision: state.revision + 1,
         selectedNodeId: newNode.id,
         selectedEdgeId: undefined,
       };
@@ -339,6 +354,7 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
       return {
         nodes: nextNodes,
         history: withHistory(state, snapshot),
+        revision: state.revision + 1,
       };
     });
   },
@@ -354,6 +370,7 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
       return {
         nodes: nextNodes,
         history: withHistory(state, snapshot),
+        revision: state.revision + 1,
       };
     });
   },
@@ -367,6 +384,7 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
       return {
         nodes: nextNodes,
         history: withHistory(state, snapshot),
+        revision: state.revision + 1,
       };
     });
   },
@@ -390,6 +408,7 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
         nodes: remainingNodes,
         edges: remainingEdges,
         history: withHistory(state, snapshot),
+        revision: state.revision + 1,
         selectedNodeId: undefined,
         selectedEdgeId: undefined,
       };
@@ -406,6 +425,7 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
         nodes: previous.nodes,
         edges: previous.edges,
         history: { past, future },
+        revision: state.revision + 1,
         selectedNodeId: undefined,
         selectedEdgeId: undefined,
       };
@@ -422,6 +442,7 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
         nodes: next.nodes,
         edges: next.edges,
         history: { past, future },
+        revision: state.revision + 1,
         selectedNodeId: undefined,
         selectedEdgeId: undefined,
       };
@@ -444,6 +465,7 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
         dragging: false,
         dragSnapshot: undefined,
         history: withHistory(state, state.dragSnapshot),
+        revision: state.revision + 1,
       };
     });
   },
@@ -451,6 +473,9 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
   saveCurrentDocument: async () => {
     const state = get();
     if (!state.metadata.id) {
+      return null;
+    }
+    if (state.revision <= lastSavedRevision) {
       return null;
     }
 
@@ -465,6 +490,7 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
     });
 
     await saveMap(exportDoc);
+    lastSavedRevision = state.revision;
 
     set((prev) => ({
       metadata: {

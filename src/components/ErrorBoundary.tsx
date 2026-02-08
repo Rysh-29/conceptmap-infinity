@@ -1,7 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
-
-const LAST_DOC_KEY = 'conceptmap-infinity:last-doc';
-const DB_NAME = 'conceptmap-infinity';
+import { resetAppData } from '../persistence/reset';
 
 type ErrorBoundaryProps = {
   children: ReactNode;
@@ -11,15 +9,6 @@ type ErrorBoundaryState = {
   hasError: boolean;
   errorMessage: string;
 };
-
-function deleteAppDatabase(name: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.deleteDatabase(name);
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error);
-    request.onblocked = () => resolve();
-  });
-}
 
 class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   public state: ErrorBoundaryState = {
@@ -45,8 +34,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 
   private handleResetStorage = async () => {
     try {
-      localStorage.removeItem(LAST_DOC_KEY);
-      await deleteAppDatabase(DB_NAME);
+      await resetAppData();
     } catch (error) {
       console.error('Storage reset failed', error);
     } finally {
@@ -62,14 +50,14 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     return (
       <div className="error-boundary" role="alert">
         <div className="error-boundary__card">
-          <h1>La aplicacion encontro un error</h1>
+          <h1>La aplicación encontró un error</h1>
           <p>{this.state.errorMessage || 'Se produjo un error inesperado.'}</p>
           <div className="error-boundary__actions">
             <button type="button" onClick={this.handleReload}>
               Recargar
             </button>
             <button type="button" onClick={() => void this.handleResetStorage()}>
-              Reset storage
+              Reiniciar almacenamiento
             </button>
           </div>
         </div>

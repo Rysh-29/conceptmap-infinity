@@ -17,6 +17,7 @@ import { useGraphStore } from './store/graphStore';
 import { useAutosave } from './persistence/autosave';
 import { getMap, listMaps } from './persistence/db';
 import { getLastDocId, setLastDocId } from './persistence/local';
+import { resetAppData } from './persistence/reset';
 import { buildExportMap } from './export/json';
 import { downloadBlob } from './export/download';
 import { exportPdfPoster, exportPdfSingle } from './export/pdf';
@@ -24,6 +25,7 @@ import { exportPdfPoster, exportPdfSingle } from './export/pdf';
 const nodeTypes: NodeTypes = { concept: ConceptNode };
 const edgeTypes: EdgeTypes = {};
 const defaultEdgeOptions = { markerEnd: { type: MarkerType.ArrowClosed } };
+const panOnDrag: number[] = [1, 2];
 
 const AppContent = () => {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
@@ -141,6 +143,20 @@ const AppContent = () => {
     return () => window.removeEventListener('keydown', handleKeydown);
   }, [handleKeydown]);
 
+  const handleSelectionChange = useCallback(
+    (params: { nodes?: { id: string }[]; edges?: { id: string }[] } | null) => {
+      selectFromSelection(
+        params?.nodes?.map((node) => node.id) ?? [],
+        params?.edges?.map((edge) => edge.id) ?? [],
+      );
+    },
+    [selectFromSelection],
+  );
+
+  const handlePaneClick = useCallback(() => {
+    selectFromSelection([], []);
+  }, [selectFromSelection]);
+
   useEffect(() => {
     const init = async () => {
       const docs = await listMaps();
@@ -196,6 +212,11 @@ const AppContent = () => {
   const handleSave = () => {
     void saveCurrentDocument();
   };
+
+  const handleResetAppData = useCallback(async () => {
+    await resetAppData();
+    window.location.reload();
+  }, []);
 
   const exportJson = () => {
     const safeName = metadata.name.replace(/[<>:"/\\|?*]+/g, '-').trim() || 'ConceptMap';
@@ -267,18 +288,13 @@ const AppContent = () => {
             onInit={setReactFlowInstance}
             onNodeDragStart={startDrag}
             onNodeDragStop={endDrag}
-            onSelectionChange={(params) =>
-              selectFromSelection(
-                params?.nodes?.map((node) => node.id) ?? [],
-                params?.edges?.map((edge) => edge.id) ?? [],
-              )
-            }
-            onPaneClick={() => selectFromSelection([], [])}
+            onSelectionChange={handleSelectionChange}
+            onPaneClick={handlePaneClick}
             fitView
             minZoom={0.1}
             maxZoom={2}
             panActivationKeyCode="Space"
-            panOnDrag={[1, 2]}
+            panOnDrag={panOnDrag}
             zoomOnScroll
             selectionOnDrag
             defaultEdgeOptions={defaultEdgeOptions}
@@ -293,6 +309,7 @@ const AppContent = () => {
           onUpdateLabel={updateNodeLabel}
           onUpdateStyle={updateNodeStyle}
           onToggleCollapse={toggleCollapse}
+          onResetAppData={handleResetAppData}
         />
       </div>
     </div>

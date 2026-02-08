@@ -5,14 +5,21 @@ type SidePanelProps = {
   onUpdateLabel: (id: string, label: string) => void;
   onUpdateStyle: (id: string, style: Partial<ConceptNode['data']['style']>) => void;
   onToggleCollapse: (id: string) => void;
+  onResetAppData: () => void;
 };
 
-const SidePanel = ({ node, onUpdateLabel, onUpdateStyle, onToggleCollapse }: SidePanelProps) => {
+const SidePanel = ({ node, onUpdateLabel, onUpdateStyle, onToggleCollapse, onResetAppData }: SidePanelProps) => {
   if (!node) {
     return (
       <aside className="sidepanel">
         <h3>Propiedades</h3>
         <p className="sidepanel__empty">Selecciona un nodo para editarlo.</p>
+        <div className="sidepanel__settings">
+          <h4>Ajustes</h4>
+          <button type="button" onClick={onResetAppData}>
+            Reiniciar datos de la app
+          </button>
+        </div>
       </aside>
     );
   }
@@ -71,6 +78,12 @@ const SidePanel = ({ node, onUpdateLabel, onUpdateStyle, onToggleCollapse }: Sid
         />
         Colapsar rama
       </label>
+      <div className="sidepanel__settings">
+        <h4>Ajustes</h4>
+        <button type="button" onClick={onResetAppData}>
+          Reiniciar datos de la app
+        </button>
+      </div>
     </aside>
   );
 };

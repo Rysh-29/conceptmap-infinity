@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { buildExportMap } from '../export/json';
 import { useGraphStore } from '../store/graphStore';
 import { debounce, type Debounced } from '../utils/debounce';
 
@@ -7,7 +6,6 @@ export function useAutosave(delayMs = 800) {
   const isReady = useGraphStore((state) => state.isReady);
   const docId = useGraphStore((state) => state.metadata.id);
   const docName = useGraphStore((state) => state.metadata.name);
-  const createdAt = useGraphStore((state) => state.metadata.createdAt);
   const saveCurrent = useGraphStore((state) => state.saveCurrentDocument);
   const nodes = useGraphStore((state) => state.nodes);
   const edges = useGraphStore((state) => state.edges);
@@ -17,18 +15,14 @@ export function useAutosave(delayMs = 800) {
       return '';
     }
 
-    return JSON.stringify(
-      buildExportMap({
-        id: docId,
-        name: docName,
-        createdAt,
-        // Only needed for schema shape. It is ignored in dirty-checking logic.
-        updatedAt: createdAt,
-        nodes,
-        edges,
-      }),
-    );
-  }, [createdAt, docId, docName, edges, nodes]);
+    // Do not include timestamps in the signature to avoid self-triggered saves.
+    return JSON.stringify({
+      id: docId,
+      name: docName,
+      nodes,
+      edges,
+    });
+  }, [docId, docName, edges, nodes]);
 
   const activeDocIdRef = useRef('');
   const lastSavedSignatureRef = useRef('');
@@ -36,7 +30,11 @@ export function useAutosave(delayMs = 800) {
   const isReadyRef = useRef(isReady);
   const snapshotSignatureRef = useRef(snapshotSignature);
   const isSavingRef = useRef(false);
+  const lastSaveAtRef = useRef(0);
+  const throttleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const debouncedSaveRef = useRef<Debounced<() => void> | null>(null);
+  const isDev = import.meta.env.DEV;
+  const minIntervalMs = Math.max(1200, delayMs);
 
   useEffect(() => {
     saveCurrentRef.current = saveCurrent;
@@ -61,10 +59,27 @@ export function useAutosave(delayMs = 800) {
         return;
       }
 
+      const now = Date.now();
+      const elapsed = now - lastSaveAtRef.current;
+      if (elapsed < minIntervalMs) {
+        const waitMs = minIntervalMs - elapsed;
+        if (!throttleTimerRef.current) {
+          throttleTimerRef.current = setTimeout(() => {
+            throttleTimerRef.current = null;
+            debouncedSaveRef.current?.();
+          }, waitMs);
+        }
+        return;
+      }
+
       isSavingRef.current = true;
+      lastSaveAtRef.current = now;
       try {
-        await saveCurrentRef.current();
+        const result = await saveCurrentRef.current();
         lastSavedSignatureRef.current = nextSignature;
+        if (result && isDev) {
+          console.debug('[autosave] saved');
+        }
       } finally {
         isSavingRef.current = false;
         const latestSignature = snapshotSignatureRef.current;
@@ -83,8 +98,12 @@ export function useAutosave(delayMs = 800) {
     return () => {
       debouncedSave.cancel();
       debouncedSaveRef.current = null;
+      if (throttleTimerRef.current) {
+        clearTimeout(throttleTimerRef.current);
+        throttleTimerRef.current = null;
+      }
     };
-  }, [delayMs]);
+  }, [delayMs, minIntervalMs]);
 
   useEffect(() => {
     if (!isReady || !docId || !snapshotSignature) {
@@ -96,6 +115,11 @@ export function useAutosave(delayMs = 800) {
       // Treat loaded document state as baseline to avoid save loops on boot.
       lastSavedSignatureRef.current = snapshotSignature;
       debouncedSaveRef.current?.cancel();
+      lastSaveAtRef.current = 0;
+      if (throttleTimerRef.current) {
+        clearTimeout(throttleTimerRef.current);
+        throttleTimerRef.current = null;
+      }
       return;
     }
 

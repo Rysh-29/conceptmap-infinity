@@ -142,6 +142,36 @@ body {
   font-size: 0.85rem;
 }
 
+.sidepanel__settings {
+  margin-top: 18px;
+  padding-top: 12px;
+  border-top: 1px solid #e1dbd2;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidepanel__settings h4 {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.sidepanel__settings button {
+  border: 1px solid #cec5b6;
+  background: #f8f5f0;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.sidepanel__settings button:hover {
+  background: #1f1f1f;
+  color: #fff;
+  border-color: #1f1f1f;
+}
+
 .concept-node {
   min-width: 200px;
   min-height: 80px;

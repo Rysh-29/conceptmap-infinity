@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "kill:5173": "powershell -NoProfile -Command \"$conn = Get-NetTCPConnection -LocalPort 5173 -State Listen -ErrorAction SilentlyContinue; if ($conn) { Stop-Process -Id ($conn.OwningProcess | Select-Object -Unique) -Force -ErrorAction SilentlyContinue }; exit 0\"",
+    "dev:clean": "npm run kill:5173 && npm run dev",
     "build": "tsc -b && vite build",
     "test": "vitest run",
     "lint": "eslint .",

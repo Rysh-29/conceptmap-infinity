@@ -71,3 +71,14 @@ export default defineConfig([
   },
 ])
 ```
+
+## QA Manual (sin pantalla blanca)
+
+1. En Windows, ejecuta `npm run dev:clean` (en otros SO, `npm run dev`).
+2. Abre `http://localhost:5173` y verifica que la app carga sin pantalla en blanco.
+3. Si no hay documento, pulsa `Nuevo` para crear uno.
+4. Presiona `Enter` para crear un nodo hijo y arrástralo a otra posición.
+5. Espera ~2 segundos para el autosave.
+6. Abre la consola del navegador y confirma que no aparece “Maximum update depth exceeded”.
+7. Recarga la página y verifica que los cambios persisten.
+8. En `Ajustes`, pulsa `Reiniciar datos de la app` y confirma que la app reinicia sin errores.
