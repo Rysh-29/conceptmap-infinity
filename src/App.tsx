@@ -5,6 +5,8 @@ import ReactFlow, {
   MiniMap,
   MarkerType,
   ReactFlowProvider,
+  type EdgeTypes,
+  type NodeTypes,
   type ReactFlowInstance,
 } from 'reactflow';
 import ConceptNode from './components/ConceptNode';
@@ -19,7 +21,9 @@ import { buildExportMap } from './export/json';
 import { downloadBlob } from './export/download';
 import { exportPdfPoster, exportPdfSingle } from './export/pdf';
 
-const nodeTypes = { concept: ConceptNode };
+const nodeTypes: NodeTypes = { concept: ConceptNode };
+const edgeTypes: EdgeTypes = {};
+const defaultEdgeOptions = { markerEnd: { type: MarkerType.ArrowClosed } };
 
 const AppContent = () => {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
@@ -256,6 +260,7 @@ const AppContent = () => {
             nodes={visibleNodes}
             edges={visibleEdges}
             nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
@@ -276,7 +281,7 @@ const AppContent = () => {
             panOnDrag={[1, 2]}
             zoomOnScroll
             selectionOnDrag
-            defaultEdgeOptions={{ markerEnd: { type: MarkerType.ArrowClosed } }}
+            defaultEdgeOptions={defaultEdgeOptions}
           >
             <Background gap={24} color="#c7c3bd" />
             <MiniMap pannable zoomable className="minimap" />
