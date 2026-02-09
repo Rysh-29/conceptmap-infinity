@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactFlow, {
   Background,
   Controls,
@@ -25,7 +25,7 @@ import { exportPdfPoster, exportPdfSingle } from './export/pdf';
 const nodeTypes: NodeTypes = { concept: ConceptNode };
 const edgeTypes: EdgeTypes = {};
 const defaultEdgeOptions = { markerEnd: { type: MarkerType.ArrowClosed } };
-const panOnDrag: number[] = [1, 2];
+const panOnDrag = [1, 2];
 
 const AppContent = () => {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
@@ -194,7 +194,7 @@ const AppContent = () => {
     }
   }, [metadata.id]);
 
-  const handleSelectDocument = async (id: string) => {
+  const handleDocSwitch = async (id: string) => {
     if (!id) return;
     const loaded = await getMap(id);
     if (loaded) {
@@ -218,21 +218,32 @@ const AppContent = () => {
     window.location.reload();
   }, []);
 
-  const exportJson = () => {
+  const handleExport = async (format: 'json' | 'pdf-a4') => {
     const safeName = metadata.name.replace(/[<>:"/\\|?*]+/g, '-').trim() || 'ConceptMap';
-    const doc = buildExportMap({
-      id: metadata.id,
-      name: metadata.name,
-      createdAt: metadata.createdAt,
-      updatedAt: new Date().toISOString(),
-      nodes,
-      edges,
-    });
-    const blob = new Blob([JSON.stringify(doc, null, 2)], { type: 'application/json' });
-    downloadBlob(blob, `${safeName}.json`);
+    if (format === 'json') {
+      const doc = buildExportMap({
+        id: metadata.id,
+        name: metadata.name,
+        createdAt: metadata.createdAt,
+        updatedAt: new Date().toISOString(),
+        nodes,
+        edges,
+      });
+      const blob = new Blob([JSON.stringify(doc, null, 2)], { type: 'application/json' });
+      downloadBlob(blob, `${safeName}.json`);
+    } else if (format === 'pdf-a4') {
+      if (!reactFlowInstance || !wrapperRef.current) return;
+        await exportPdfPoster({
+        container: wrapperRef.current,
+        reactFlow: reactFlowInstance,
+        nodes: visibleNodes.filter((node) => !node.hidden),
+        pageSize: 'A4',
+        filename: `${safeName}-A4.pdf`,
+        });
+    }
   };
 
-  const exportPoster = async (size: 'A4' | 'A3') => {
+  const exportPoster = async (size: 'A3' | 'A4') => {
     if (!reactFlowInstance || !wrapperRef.current) return;
     const safeName = metadata.name.replace(/[<>:"/\\|?*]+/g, '-').trim() || 'ConceptMap';
     await exportPdfPoster({
@@ -256,7 +267,7 @@ const AppContent = () => {
   };
 
   const exportAndUpload = async () => {
-    exportJson();
+    handleExport('json');
     await exportPoster('A4');
     window.open('https://drive.google.com/drive/my-drive', '_blank', 'noopener');
   };
@@ -264,13 +275,13 @@ const AppContent = () => {
   return (
     <div className="app">
       <TopBar
-        documents={documents}
-        currentId={metadata.id}
-        onSelectDocument={handleSelectDocument}
+        docList={documents}
+        docId={metadata.id}
+        onDocSwitch={handleDocSwitch}
         onNew={() => newDocument()}
         onRename={handleRename}
         onSave={handleSave}
-        onExportJson={exportJson}
+        onExport={handleExport}
         onExportPoster={exportPoster}
         onExportSingle={exportSingle}
         onExportAndUpload={exportAndUpload}

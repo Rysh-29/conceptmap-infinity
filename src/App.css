@@ -1,42 +1,275 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.app__body {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+}
+
+.canvas {
+  flex-grow: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.topbar {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: var(--surface-2);
+  box-shadow: var(--shadow);
+  z-index: 10;
+}
+
+.topbar-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sidepanel {
+  flex-shrink: 0;
+  width: 320px;
+  padding: 24px;
+  background: var(--surface-2);
+  border-left: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  z-index: 10;
+  overflow-y: auto;
+}
+
+.sidepanel--empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
+  color: var(--muted);
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.sidepanel__empty-icon {
+  margin-bottom: 16px;
+  opacity: 0.5;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* Formularios */
+
+.form-field {
+  margin-bottom: 16px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.form-field label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+  margin-bottom: 8px;
 }
 
-.card {
-  padding: 2em;
+.form-field input[type="text"],
+.form-field input[type="color"],
+.form-field input[type="range"],
+select {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 14px;
+  transition: all 0.2s;
 }
 
-.read-the-docs {
-  color: #888;
+select {
+  background: var(--surface);
+  padding: 10px 12px;
+}
+
+.form-field input[type="text"]:focus,
+.form-field input[type="color"]:focus,
+select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.2);
+}
+
+.form-field-checkbox {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+/* Botones */
+
+button,
+.btn-primary,
+.btn-secondary {
+  border-radius: 6px;
+  border: 1px solid transparent;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+}
+
+.btn-secondary {
+  background-color: var(--surface);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.btn-secondary:hover {
+  background-color: rgba(var(--primary-rgb), 0.1);
+  border-color: var(--primary);
+}
+
+/* Export Dropdown */
+
+.export-dropdown {
+  position: relative;
+}
+
+.export-dropdown-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 200px;
+  background-color: var(--surface);
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+.export-dropdown-panel button {
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: var(--text);
+}
+
+.export-dropdown-panel button:hover {
+  background-color: rgba(var(--primary-rgb), 0.1);
+}
+
+/* ReactFlow Overrides */
+
+.react-flow__background {
+  background-color: var(--bg);
+}
+
+.react-flow__controls {
+  background-color: rgba(var(--surface-rgb), 0.8);
+  backdrop-filter: blur(5px);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  padding: 4px;
+  box-shadow: var(--shadow);
+}
+
+.react-flow__controls-button {
+  fill: var(--text);
+}
+
+.react-flow__controls-button:hover {
+  background-color: rgba(var(--primary-rgb), 0.1);
+}
+
+.react-flow__minimap {
+  background-color: rgba(var(--surface-rgb), 0.8) !important;
+  backdrop-filter: blur(5px);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+/* ConceptNode */
+
+.concept-node {
+  border-radius: 8px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  min-width: 120px;
+  min-height: 40px;
+  transition: all 0.2s;
+
+  /* Estilos por defecto (Dark) */
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.concept-node.selected {
+  box-shadow: 0 0 0 2px var(--primary), 0 0 20px -5px var(--primary);
+  border-color: var(--primary);
+}
+
+.concept-node__input {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  text-align: center;
+  font-size: 14px;
+  padding: 4px;
+  width: 100%;
+}
+
+.concept-node__input:focus {
+  outline: none;
+  background-color: rgba(var(--primary-rgb), 0.1);
+  border-radius: 4px;
+}
+
+.concept-node__collapse {
+  position: absolute;
+  bottom: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: var(--surface-2);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: bold;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  transition: all 0.2s;
+}
+
+.concept-node:hover .concept-node__collapse {
+  opacity: 1;
+  bottom: -12px;
 }

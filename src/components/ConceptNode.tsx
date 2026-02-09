@@ -1,4 +1,4 @@
-﻿import { memo, useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import { Handle, Position, type NodeProps } from 'reactflow';
 import type { ConceptNodeData } from '../types/graph';
 import { useGraphStore } from '../store/graphStore';
@@ -29,14 +29,16 @@ const ConceptNode = ({ id, data, selected }: NodeProps<ConceptNodeData>) => {
     }
   };
 
+  const nodeStyle = {
+    background: data.style.bgColor,
+    borderColor: data.style.borderColor,
+    borderWidth: data.style.borderWidth,
+  };
+
   return (
     <div
       className={`concept-node ${selected ? 'selected' : ''}`}
-      style={{
-        background: data.style.bgColor,
-        borderColor: data.style.borderColor,
-        borderWidth: data.style.borderWidth,
-      }}
+      style={nodeStyle}
       onDoubleClick={() => setIsEditing(true)}
     >
       <Handle type="target" position={Position.Left} />
